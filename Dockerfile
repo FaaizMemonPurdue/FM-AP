@@ -61,10 +61,14 @@ RUN export ARDUPILOT_ENTRYPOINT="/home/${USER_NAME}/ardupilot_entrypoint.sh" \
 
 COPY . /ardupilot
 
-RUN sudo chown -R ardupilot /ardupilot && ./critical_submodules.sh
+RUN sudo chown -R ardupilot /ardupilot 
+RUN sudo chmod u+x ./critical_submodules.sh && ./critical_submodules.sh
 
-RUN ./waf configure --board=sitl
-RUN ./waf copter
+ENV CCACHE_DIR=/ardupilot/ccache
+RUN mkdir -p $CCACHE_DIR && chmod 777 $CCACHE_DIR
+
+RUN ccache ./waf configure --board sitl  --no-submodule-update
+RUN ccache ./waf copter
 
 # Set the buildlogs directory into /tmp as other directory aren't accessible
 ENV BUILDLOGS=/tmp/buildlogs
@@ -72,6 +76,8 @@ ENV BUILDLOGS=/tmp/buildlogs
 # Cleanup
 RUN sudo apt-get clean \
     && sudo rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN ls /ccache
 
 ENV CCACHE_MAXSIZE=1G
 ENTRYPOINT ["/ardupilot_entrypoint.sh"]
