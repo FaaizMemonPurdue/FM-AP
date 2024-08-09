@@ -1,22 +1,22 @@
 # Docker context ignore list
 .azure
-.github
-.git
+#.github
+#.git
 .idea
 .vagrant
 AntennaTracker
 Rover
-ArduCopter
+#ArduCopter
 ArduPlane
 ArduSub
 benchmarks
 build
 docs
-libraries
+#libraries
 mk
-modules
-tests
-Tools
+#modules
+#tests
+#Tools
 # autotest directories
 test.*
 terrain

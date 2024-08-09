@@ -7,10 +7,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG USER_NAME=ardupilot
 ARG USER_UID=1000
 ARG USER_GID=1000
-ARG SKIP_AP_EXT_ENV=1
-ARG SKIP_AP_GRAPHIC_ENV=1
+ARG SKIP_AP_EXT_ENV=0
+ARG SKIP_AP_GRAPHIC_ENV=0
 ARG SKIP_AP_COV_ENV=1
 ARG SKIP_AP_GIT_CHECK=1
+ARG DO_AP_STM_ENV=0
 
 RUN groupadd ${USER_NAME} --gid ${USER_GID}\
     && useradd -l -m ${USER_NAME} -u ${USER_UID} -g ${USER_GID} -s /bin/bash
@@ -23,7 +24,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 COPY Tools/environment_install/install-prereqs-ubuntu.sh /ardupilot/Tools/environment_install/
 COPY Tools/completion /ardupilot/Tools/completion/
+COPY selections.conf /ardupilot
 
+RUN debconf-set-selections < selections.conf
+RUN apt-get install keyboard-configuration -y
 # Create non root user for pip
 ENV USER=${USER_NAME}
 
@@ -35,6 +39,7 @@ RUN chown -R ${USER_NAME}:${USER_NAME} /${USER_NAME}
 USER ${USER_NAME}
 
 ENV SKIP_AP_EXT_ENV=$SKIP_AP_EXT_ENV SKIP_AP_GRAPHIC_ENV=$SKIP_AP_GRAPHIC_ENV SKIP_AP_COV_ENV=$SKIP_AP_COV_ENV SKIP_AP_GIT_CHECK=$SKIP_AP_GIT_CHECK
+ENV DO_AP_STM_ENV=$DO_AP_STM_ENV
 RUN Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # add waf alias to ardupilot waf to .ardupilot_env
@@ -42,6 +47,8 @@ RUN echo "alias waf=\"/${USER_NAME}/waf\"" >> ~/.ardupilot_env
 
 # Check that local/bin are in PATH for pip --user installed package
 RUN echo "if [ -d \"\$HOME/.local/bin\" ] ; then\nPATH=\"\$HOME/.local/bin:\$PATH\"\nfi" >> ~/.ardupilot_env
+
+
 
 # Create entrypoint as docker cannot do shell substitution correctly
 RUN export ARDUPILOT_ENTRYPOINT="/home/${USER_NAME}/ardupilot_entrypoint.sh" \
@@ -51,6 +58,13 @@ RUN export ARDUPILOT_ENTRYPOINT="/home/${USER_NAME}/ardupilot_entrypoint.sh" \
     && echo 'exec "$@"' >> $ARDUPILOT_ENTRYPOINT \
     && chmod +x $ARDUPILOT_ENTRYPOINT \
     && sudo mv $ARDUPILOT_ENTRYPOINT /ardupilot_entrypoint.sh
+
+COPY . /ardupilot
+
+RUN sudo chown -R ardupilot /ardupilot && ./critical_submodules.sh
+
+RUN ./waf configure --board=sitl
+RUN ./waf copter
 
 # Set the buildlogs directory into /tmp as other directory aren't accessible
 ENV BUILDLOGS=/tmp/buildlogs

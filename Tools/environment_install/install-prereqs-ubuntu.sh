@@ -365,7 +365,7 @@ if [ ${RELEASE_CODENAME} == 'lunar' ] ||
 fi
 
 # try update setuptools and wheel before installing pip package that may need compilation
-$PIP install $PIP_USER_ARGUMENT -U pip setuptools wheel
+$PIP install $PIP_USER_ARGUMENT -U pip packaging setuptools wheel
 
 if [ "$GITHUB_ACTIONS" == "true" ]; then
     PIP_USER_ARGUMENT+=" --progress-bar off"
