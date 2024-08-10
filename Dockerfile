@@ -48,8 +48,6 @@ RUN echo "alias waf=\"/${USER_NAME}/waf\"" >> ~/.ardupilot_env
 # Check that local/bin are in PATH for pip --user installed package
 RUN echo "if [ -d \"\$HOME/.local/bin\" ] ; then\nPATH=\"\$HOME/.local/bin:\$PATH\"\nfi" >> ~/.ardupilot_env
 
-
-
 # Create entrypoint as docker cannot do shell substitution correctly
 RUN export ARDUPILOT_ENTRYPOINT="/home/${USER_NAME}/ardupilot_entrypoint.sh" \
     && echo "#!/bin/bash" > $ARDUPILOT_ENTRYPOINT \
@@ -63,9 +61,6 @@ COPY . /ardupilot
 
 RUN sudo chown -R ardupilot /ardupilot 
 RUN sudo chmod u+x ./critical_submodules.sh && ./critical_submodules.sh
-
-#ENV CCACHE_DIR=/ardupilot/ccache
-#RUN mkdir -p $CCACHE_DIR && chmod 777 $CCACHE_DIR
 
 RUN . /home/ardupilot/.ardupilot_env && ccache ./waf configure --board sitl  --no-submodule-update
 RUN ccache ./waf copter
