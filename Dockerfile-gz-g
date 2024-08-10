@@ -1,4 +1,4 @@
-FROM copter-4.5.0:5
+FROM copter-4.4.0:1
 
 COPY ./get-gz-garden.sh /home/ardupilot/get-gz-garden.sh
 COPY ./get-ap_gz-garden.sh /home/ardupilot/get-ap_gz-garden.sh
