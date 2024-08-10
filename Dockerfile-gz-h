@@ -1,0 +1,7 @@
+FROM copter-4.5.0:5
+
+COPY ./get-gz-harmonic.sh /home/ardupilot/get-gz-harmonic.sh
+RUN ls ~
+RUN . ~/get-gz-harmonic.sh
+
+
