@@ -35,16 +35,17 @@ ENV SKIP_AP_EXT_ENV=0 SKIP_AP_GRAPHIC_ENV=0 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHECK=
 ENV DO_AP_STM_ENV=0
 RUN Tools/environment_install/install-prereqs-ubuntu.sh -y
 
-# add waf alias to ardupilot waf to .bashrc
-RUN echo "alias waf=\"/${USER_NAME}/waf\"" >> ~/ardupilot_entrypoint.sh
-
-# Check that local/bin are in PATH for pip --user installed package
-RUN echo "if [ -d \"\$HOME/.local/bin\" ] ; then\nPATH=\"\$HOME/.local/bin:\$PATH\"\nfi" >> ~/ardupilot_entrypoint.sh
 
 COPY . /ardupilot
 
 RUN sudo chown -R ardupilot /ardupilot 
 RUN sudo chmod u+x ./critical_submodules.sh && ./critical_submodules.sh
+
+# add waf alias to ardupilot waf to .bashrc
+RUN echo "alias waf=\"/${USER_NAME}/waf\"" >> ~/.ardupilot_env
+
+# Check that local/bin are in PATH for pip --user installed package
+RUN echo "if [ -d \"\$HOME/.local/bin\" ] ; then\nPATH=\"\$HOME/.local/bin:\$PATH\"\nfi" >> ~/.ardupilot_env
 
 # Create entrypoint as docker cannot do shell substitution correctly
 RUN export ARDUPILOT_ENTRYPOINT="/home/${USER_NAME}/ardupilot_entrypoint.sh" \
@@ -56,6 +57,7 @@ RUN export ARDUPILOT_ENTRYPOINT="/home/${USER_NAME}/ardupilot_entrypoint.sh" \
     && sudo mv $ARDUPILOT_ENTRYPOINT /ardupilot_entrypoint.sh
 
 RUN . /ardupilot_entrypoint.sh && ccache ./waf configure --board sitl --no-submodule-update
+
 RUN ccache ./waf copter
 # Set the buildlogs directory into /tmp as other directory aren't accessible
 ENV BUILDLOGS=/tmp/buildlogs
@@ -65,5 +67,4 @@ RUN sudo apt-get clean \
     && sudo rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV CCACHE_MAXSIZE=1G
-# ENTRYPOINT ["/ardupilot_entrypoint.sh"]
 CMD ["bash"]

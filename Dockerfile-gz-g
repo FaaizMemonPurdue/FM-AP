@@ -1,4 +1,4 @@
-FROM faaizmemon/copter-4.3.0:1
+FROM faaizmemon/copter-4.3.0:2
 
 COPY ./get-gz-garden.sh /home/ardupilot/get-gz-garden.sh
 COPY ./get-ap_gz-garden.sh /home/ardupilot/get-ap_gz-garden.sh
